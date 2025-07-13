@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fusion Paybot Signup</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #e5f5eb;
+      margin: 0;
+      padding: 0;
+      color: #1c1c1c;
+    }
+    .container {
+      max-width: 480px;
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      padding: 24px;
+    }
+    h2 {
+      color: #25D366;
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .form-section {
+      display: none;
+    }
+    .form-section.active {
+      display: block;
+    }
+    .btn {
+      margin-top: 20px;
+      background-color: #25D366;
+      color: white;
+      padding: 12px;
+      border: none;
+      width: 100%;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .btn:disabled {
+      background-color: #a7dfbc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Fusion Paybot Signup</h2>
+    <form id="signupForm">
+      <!-- Page 1 -->
+      <div class="form-section active" id="step1">
+        <label for="firstName">First Name</label>
+        <input type="text" id="firstName" required />
+
+        <label for="lastName">Last Name</label>
+        <input type="text" id="lastName" required />
+
+        <label for="referral">Referral Phone Number (optional)</label>
+        <input type="text" id="referral" />
+
+        <button type="button" class="btn" onclick="nextStep(1)">Next</button>
+      </div>
+
+      <!-- Page 2 -->
+      <div class="form-section" id="step2">
+        <label for="bvn">BVN</label>
+        <input type="text" id="bvn" required />
+
+        <label for="street">Street</label>
+        <input type="text" id="street" required />
+
+        <label for="city">City</label>
+        <input type="text" id="city" required />
+
+        <label for="state">State</label>
+        <select id="state" required>
+          <option value="">Select a State</option>
+          <option value="Lagos">Lagos</option>
+          <option value="Abuja">Abuja</option>
+          <option value="Rivers">Rivers</option>
+          <option value="Enugu">Enugu</option>
+          <option value="Oyo">Oyo</option>
+          <!-- Add more Nigerian states as needed -->
+        </select>
+
+        <button type="button" class="btn" onclick="nextStep(2)">Next</button>
+      </div>
+
+      <!-- Page 3 -->
+      <div class="form-section" id="step3">
+        <label for="pin">Set PIN</label>
+        <input type="password" id="pin" maxlength="4" required />
+
+        <label for="confirmPin">Confirm PIN</label>
+        <input type="password" id="confirmPin" maxlength="4" required />
+
+        <label>
+          <input type="checkbox" id="requirePin" checked />
+          Require PIN for each transfer
+        </label>
+
+        <button type="submit" class="btn">Submit</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    let currentStep = 1;
+
+    function nextStep(step) {
+      document.getElementById(`step${step}`).classList.remove("active");
+      document.getElementById(`step${step + 1}`).classList.add("active");
+    }
+
+    document.getElementById("signupForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const pin = document.getElementById("pin").value;
+      const confirmPin = document.getElementById("confirmPin").value;
+
+      if (pin !== confirmPin) {
+        alert("PINs do not match");
+        return;
+      }
+
+      const data = {
+        firstName: document.getElementById("firstName").value,
+        lastName: document.getElementById("lastName").value,
+        phoneNo: localStorage.getItem("phoneNo") || prompt("Enter your WhatsApp phone number"),
+        referralPhoneNo: document.getElementById("referral").value,
+        bvn: document.getElementById("bvn").value,
+        address: {
+          street: document.getElementById("street").value,
+          city: document.getElementById("city").value,
+          state: document.getElementById("state").value
+        },
+        pin: pin,
+        requirePinForTransfer: document.getElementById("requirePin").checked
+      };
+
+      const response = await fetch("/users/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        alert("✅ Wallet created! Account No: " + result.walletAccountNo);
+      } else {
+        alert("❌ Error: " + result.detail || result.message);
+      }
+    });
+  </script>
+</body>
+</html>
